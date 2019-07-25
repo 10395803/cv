@@ -1,0 +1,297 @@
+\documentclass[12pt, a4paper, twoside, openright, notitlepage]{article}
+
+%============================================================
+% base packages and hardly taggable stuff
+%============================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{newunicodechar}
+\usepackage{lmodern}
+\usepackage{anyfontsize}
+\usepackage{enumitem}  % in conflict with \usepackage{enumerate}
+\usepackage{fourier}  % style
+%\usepackage{lipsum}  % dummy text
+\usepackage{authblk}  % footnote style author/affiliation
+\usepackage[top=2cm, bottom=3cm, left=1.5cm, right=1.5cm, scale=0.75]{geometry}  % set the margins
+%\usepackage[inner=3cm, textwidth=445pt, scale=0.75, top=3cm, bottom=3cm]{geometry}  % set the margins (book style)
+\usepackage{fancyvrb}  % insert verbatim within a command
+\usepackage{fancyhdr}  % set header and footer
+\usepackage[letterspace=150]{microtype}  % improved typographics
+\usepackage{textcomp}  % more text symbols
+\usepackage{gensymb}  % more text and math symbols
+\usepackage{bbm}  % blackboard-style cm fonts
+\usepackage{csvsimple}  % csv file processing
+\usepackage[bottom]{footmisc}  % footnotes at the bottom of the page
+\usepackage{stackengine}  % stack objects vertically in a variety of customizable ways
+
+% new page
+\newcommand{\NewPage}{\newpage\null\thispagestyle{empty}\newpage}
+
+% no indent
+%\setlength\parindent{0pt}
+
+% prevent clash in TexLive2018
+\makeatletter
+\let\@@magyar@captionfix\relax
+\makeatother
+
+%============================================================
+% math
+%============================================================
+\usepackage{bm}  % access bold symbols in math mode
+\usepackage{amsmath,etoolbox}
+\allowdisplaybreaks
+\usepackage{amsfonts}
+\usepackage{amstext}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{empheq}
+\usepackage{cases}
+\usepackage{mathtools}
+\usepackage{nicefrac}  % diagonal fractions
+
+% enumerate subequations with arabic numbers (e.g. 1.1, 1.2, ecc)
+\patchcmd{\subequations}{\def\theequation{\theparentequation\alph{equation}}}{\def\theequation{\theparentequation.\arabic{equation}}}{}{}
+
+%\usepackage{chngcntr}
+%\counterwithout{equation}{section} % undo numbering system provided by phstyle.cls
+%\counterwithin{equation}{chapter}  % implement desired numbering system
+
+% absolute value
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+\makeatletter
+\let\oldabs\abs
+\def\abs{\@ifstar{\oldabs}{\oldabs*}}
+
+% argmin
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+% norm symbol
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+% mod symbol
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+
+% aliases for \boldsymbol and \widetilde
+\newcommand{\wt}[1]{\widetilde{#1}}
+\newcommand{\bg}[1]{\boldsymbol{#1}}
+
+% make \big| adapt to the context
+\makeatletter
+\let\amstexbig\big
+\def\newbig#1{%
+  \ifx#1|%
+	\expandafter\@firstoftwo
+  \else
+	\expandafter\@secondoftwo
+  \fi
+  {\big@bar}%
+  {\amstexbig{#1}}%
+}
+\AtBeginDocument{\let\big\newbig}
+\def\big@bar{\bBigg@{1.1}|}
+\makeatother
+
+% theorem and definition environment
+\theoremstyle{theorem}
+\newtheorem{theorem}{Theorem}[section]
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}[section]
+\theoremstyle{proposition}
+\newtheorem{proposition}{Proposition}[section]
+%\newenvironment{definition}[1][Definition]{\begin{trivlist}
+%\item[\hskip \labelsep {\bfseries #1}]}{\end{trivlist}}
+
+% enumerate the equations and the figures according to the section they are in
+%\numberwithin{equation}{section}
+%\numberwithin{figure}{chapter}
+
+% inline fractions settings
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\topfraction}{0.9}
+
+% matrices
+\newcommand{\matr}[1]{\mathbf{#1}}  % undergraduate algebra version
+%\newcommand{\matr}[1]{#1}          % pure math version
+%\newcommand{\matr}[1]{\bm{#1}}     % ISO complying version
+
+% interrupting and resuming subequations
+\makeatletter
+\newcounter{qrr@oldeq}
+\newcounter{qrr@oldsubeq}
+\newcounter{qrr@realeq}
+\renewenvironment{subequations}{%
+  \refstepcounter{equation}%
+  \protected@edef\theparentequation{\theequation}%
+  \setcounter{parentequation}{\value{equation}}%
+  \setcounter{equation}{0}%
+  \def\theequation{\theparentequation\alph{equation}}%
+  \ignorespaces
+}{%
+  \setcounter{qrr@oldeq}{\value{parentequation}}%
+  \setcounter{qrr@oldsubeq}{\value{equation}}%
+  \setcounter{equation}{\value{parentequation}}%
+  \ignorespacesafterend
+}
+\newenvironment{subequations*}{%
+  \setcounter{qrr@realeq}{\value{equation}}%
+  \let\theparentequation\theequation%
+  \patchcmd{\theparentequation}{equation}{parentequation}{}{}%
+  \setcounter{parentequation}{\numexpr\value{qrr@oldeq}-1}%
+  \setcounter{equation}{\value{qrr@oldsubeq}}%
+  \def\theequation{\theparentequation\alph{equation}}%
+  \refstepcounter{parentequation}%
+  \ignorespaces
+}{%
+  \setcounter{qrr@oldeq}{\value{parentequation}}%
+  \setcounter{qrr@oldsubeq}{\value{equation}}%
+  \setcounter{equation}{\value{qrr@realeq}}%
+  \ignorespacesafterend
+}
+\makeatother
+
+%============================================================
+% tabular
+%============================================================
+\usepackage{longtable}
+\usepackage{tabu}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{makecell}
+\usepackage{booktabs}
+
+%============================================================
+% hyperlinks
+%============================================================
+\RequirePackage[hyphens]{url}
+\PassOptionsToPackage{hyphens}{url}\usepackage[breaklinks=true]{hyperref}
+\usepackage{breakcites}
+\usepackage{breakurl}
+\usepackage{url}
+
+%============================================================
+% graphics
+%============================================================
+%\usepackage{floatrow}	% notes below a figure
+\usepackage{pdfpages}  % include pdf documents
+\usepackage{graphicx}  	
+\usepackage{epstopdf}
+\epstopdfsetup{outdir=./img/}
+\usepackage{float}
+%\usepackage[position = top]{subfig}
+\usepackage{wrapfig}
+\usepackage[labelformat=empty, labelfont=bf,labelsep=period,font=small]{caption}
+\usepackage{subcaption}  % in conflict with \usepackage{subfloat}
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing}
+
+% modify the space between figure and caption
+%\setlength{\abovecaptionskip}{-4pt}
+%\setlength{\belowcaptionskip}{3pt}
+
+% path to images
+\def \mediaroot {/home/stefano/Desktop/phd/share}
+\graphicspath{{\mediaroot/media/img/}{./img/}}	
+
+%============================================================
+% pseudocode
+%============================================================
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% redefine \Require and \Ensure for algorithm environment
+%\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+%\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+% define the do-while loop
+%\algdef{SE}[DOWHILE]{DoWhile}{EndDoWhile}{\algorithmicdo}[1]{\algorithmicwhile\ #1}
+
+%============================================================
+% fancy boxes
+%============================================================
+\usepackage[export]{adjustbox}
+
+\usepackage[many]{tcolorbox}
+\makeatletter
+	\renewcommand*\l@figure{\@dottedtocline{1}{1em}{3.2em}}
+\makeatother
+
+%============================================================
+% listings
+%============================================================
+\usepackage{listings}
+
+% minted: package for formatting and highlighting source code
+\usepackage[cache=false]{minted}
+\setminted{mathescape, escapeinside=||, tabsize=4, python3=true}
+
+%============================================================
+% bibliography
+%============================================================
+\usepackage[square, sort, nonamebreak]{natbib}
+\bibliographystyle{apalike}
+
+%============================================================
+% cv-specific
+%============================================================
+\usepackage{fontawesome}
+\usepackage[misc]{ifsym}
+%\usepackage{marvosym}
+%\usepackage{textcomp}
+\usepackage{wasysym}
+
+%============================================================
+% document
+%============================================================
+\begin{document}
+	\hspace*{-0.7cm} \begin{minipage}{0.85\textwidth}
+		\noindent \fontsize{18}{26}\selectfont{\textbf{Stefano UBBIALI}}
+
+		\vspace*{0.5cm}
+
+		\noindent \fontsize{14}{18}\selectfont{Doctoral student in Computational Physics, ETH Z\"urich}
+
+		\vspace*{0.5cm}
+
+		\noindent \fontsize{14}{18}\selectfont{\emph{Master degree in Mathematical Engineering, Politecnico di Milano}} \\
+		\noindent \fontsize{14}{18}\selectfont{\emph{Master degree in Computational Science and Engineering, EPFL}}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.13\textwidth}
+		\centering
+		\hspace*{-1.6cm} \includegraphics[scale=0.95]{passport.pdf}
+	\end{minipage}
+
+	\vspace*{0.2cm}
+
+	\section*{Personal information}
+		\begin{itemize}
+        \item[\faChild] Born on February 20$^{\text{th}}$, 1992, in Ponte S.
+        Pietro (Italy).
+        \item[\faFlagO] Italian citizenship.
+        \item[\faBuildingO] Institute for Theoretical Physics, ETH Z\"urich \\
+        Office LZA H7, Via Trevano 131, 6900 Lugano, Switzerland 
+        \item[\faEnvelopeO] \href{mailto:subbiali@phys.ethz.ch}{\texttt{subbiali@phys.ethz.ch}}, \href{mailto:subbiali@cscs.ch}{\texttt{subbiali@cscs.ch}}.
+        \item[\faPhone] +39 347 01 86 842 (Italian mobile number),
+        +41 77 462 39 03 (Swiss mobile number).
+        \item[\faSkype] \texttt{steubb92} (\href{mailto:stefano.ubbiali@outlook.com}{\texttt{stefano.ubbiali@outlook.com}}).
+        \item[\faBook] ORCID ID: $0000-0002-1506-9241$.
+    \end{itemize} 
+    
+  \section*{Education}
+
+  \section*{Current positions}
+
+  \section*{Past positions}
+
+  \section*{Computer skills}
+
+  \section*{Publications}
+
+  \section*{Conferences ($^{\mathbf{*}}$ invited speaker)}
+
+  \section*{Workshops ($^{\mathbf{*}}$ invited)}
+\end{document}
